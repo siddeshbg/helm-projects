@@ -1,0 +1,134 @@
+Project 1: Creating and deploying a simple Nginx application using a Helm chart.
+
+1. Install Helm
+If Helm is not installed, you can install it by following the instructions here: Helm Installation Guide.
+
+2. Create a New Helm Chart
+Run the following command to create a new Helm chart for Nginx:
+
+bash
+Copy code
+helm create nginx
+This command will generate the basic structure of a Helm chart in a folder named nginx. The folder structure will look like this:
+
+Copy code
+nginx/
+├── Chart.yaml
+├── values.yaml
+├── templates/
+│   ├── deployment.yaml
+│   ├── service.yaml
+│   └── _helpers.tpl
+3. Customize the Helm Chart for Nginx
+We will customize the values.yaml and deployment.yaml to match the requirements for deploying an Nginx application.
+
+values.yaml (configuration file):
+This file defines the configuration for your Helm chart. You can define things like the image to use, replicas, and service type.
+
+In values.yaml, change the image to use Nginx:
+
+yaml
+Copy code
+# values.yaml
+
+replicaCount: 2
+
+image:
+  repository: nginx
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: LoadBalancer
+  port: 80
+
+ingress:
+  enabled: false
+
+resources: {}
+Set the repository to nginx to use the official Nginx image.
+Set replicaCount to 2 to deploy two replicas.
+Use a LoadBalancer service type to expose Nginx to the outside world.
+deployment.yaml (template file):
+In templates/deployment.yaml, this file controls how the Nginx application will be deployed. It should already be structured, but we’ll ensure it works with our values.yaml settings.
+
+Check if the deployment file uses the correct values for the image:
+
+yaml
+Copy code
+# templates/deployment.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "nginx.fullname" . }}
+  labels:
+    {{- include "nginx.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "nginx.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "nginx.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 80
+Ensure that the image and the number of replicas are dynamically pulled from values.yaml.
+
+4. Deploy the Helm Chart to Kubernetes
+Once the chart is customized, you can deploy it to your Kubernetes cluster using the following commands:
+
+Package the Helm chart (optional): You can skip this step and deploy directly from the chart folder, but this step is useful for sharing charts.
+
+bash
+Copy code
+helm package ./nginx
+Install the chart: Run the following command to install the chart in your Kubernetes cluster:
+
+bash
+Copy code
+helm install my-nginx ./nginx
+my-nginx: The name you give to the release.
+./nginx: The directory where your chart is located.
+If everything is correct, Helm will deploy Nginx using the configuration you specified.
+
+5. Verify the Deployment
+After deploying, verify that the Nginx application is running.
+
+Check the Helm release:
+
+bash
+Copy code
+helm list
+You should see my-nginx listed with a status of deployed.
+
+Check the pods:
+
+bash
+Copy code
+kubectl get pods
+You should see two Nginx pods running as per the replica count.
+
+Check the services:
+
+bash
+Copy code
+kubectl get svc
+If you used a LoadBalancer service type, you should see an external IP assigned to the service. You can access Nginx using this IP.
+
+Access the Nginx application: Open your browser and visit the external IP to verify that Nginx is up and running.
+
+6. Uninstall the Release
+When you're done testing, you can uninstall the Helm release:
+
+bash
+Copy code
+helm uninstall my-nginx
+This will remove all the resources created by the chart from your Kubernetes cluster.
