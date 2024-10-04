@@ -129,6 +129,6 @@ Access the Nginx application: Open your browser and visit the external IP to ver
 When you're done testing, you can uninstall the Helm release:
 
 bash
-Copy code
 helm uninstall my-nginx
+
 This will remove all the resources created by the chart from your Kubernetes cluster.
