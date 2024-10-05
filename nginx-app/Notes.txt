@@ -124,6 +124,8 @@ kubectl get svc
 If you used a LoadBalancer service type, you should see an external IP assigned to the service. You can access Nginx using this IP.
 
 Access the Nginx application: Open your browser and visit the external IP to verify that Nginx is up and running.
+The Helm install will display instruction to access this Nginx application. 
+Based on this, this app can be accesssed at http://localhost:80
 
 6. Uninstall the Release
 When you're done testing, you can uninstall the Helm release:
